@@ -1,6 +1,8 @@
 import cors = require("cors");
 import express = require("express");
 import { Request, Response } from "express";
+import * as bodyParser from "body-parser";
+const formidable = require("express-formidable");
 
 export class RequestHandler {
     // Constant
@@ -21,6 +23,9 @@ export class RequestHandler {
         // Enable parsing of body data
         this.app.use(express.json());
         this.app.use(express.urlencoded({extended: true}));
+        app.use(bodyParser.urlencoded({extended: true}));
+        app.use(bodyParser.json());
+        app.use(formidable());
     }
 
     public startServer(): void {

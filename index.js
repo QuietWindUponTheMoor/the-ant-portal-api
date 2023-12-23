@@ -36,54 +36,22 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var mysql = require("mysql2/promise");
 var request_handler_1 = require("./lib/requests/request_handler");
-var dotenv = require("dotenv");
-dotenv.config();
-// Set up database
-try {
-    // Configure database
-    var dbConfig = {
-        host: validateEnvVar(process.env.host, "null"),
-        port: validateEnvVarAsNumber(process.env.port),
-        user: validateEnvVar(process.env.username, "null"),
-        password: validateEnvVar(process.env.password, ""),
-        database: validateEnvVar(process.env.database, "null")
-    };
-    // Get database
-    var db = mysql.createPool(dbConfig);
-}
-catch (error) {
-    console.error("Error connecting to database: ".concat(error));
-}
+var register_1 = require("./lib/routes/register");
 // Create handler class instance
 var handler = new request_handler_1.RequestHandler();
+// Start the script
 main();
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var _this = this;
+        var Reg;
         return __generator(this, function (_a) {
-            // Testing
-            handler._res("/", function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-                return __generator(this, function (_a) {
-                    res.send("FUCK YOU");
-                    return [2 /*return*/];
-                });
-            }); });
+            Reg = new register_1.Register(handler);
+            //Reg.processRequest();
+            Reg.processRequest();
             return [2 /*return*/];
         });
     });
 }
+// Start express
 handler.startServer();
-// Helper functions
-function validateEnvVar(envVar, defaultValue) {
-    return envVar !== undefined ? envVar : defaultValue;
-}
-;
-function validateEnvVarAsNumber(value) {
-    var parsedValue = parseInt(value || "", 10);
-    if (isNaN(parsedValue)) {
-        throw new Error("Invalid or undefined numeric value in environment variable.");
-    }
-    return parsedValue;
-}
