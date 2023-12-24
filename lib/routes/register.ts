@@ -32,7 +32,7 @@ export class Register {
         this.handler = handler;
     }
 
-    public processRequest(): void {
+    public processRegister(): void {
         // Initialize status
         let fail_reason: string = "";
         let pass_fail: boolean = true;
@@ -106,7 +106,7 @@ export class Register {
             if (pass_fail === false) {
                 reply_data = {
                     status: this.__bad_request,
-                    message: "User submitted something incorrectly when creating their account.",
+                    message: "Registration failed",
                     details: fail_reason,
                     profile_image_name: this.profile_image_name
                 }

@@ -1,7 +1,7 @@
 // Imports
-import * as fs from "fs";
 import {RequestHandler} from "./lib/requests/request_handler";
 import {Register} from "./lib/routes/register";
+import {Signin} from "./lib/routes/signin";
 
 // Create handler class instance
 const handler: RequestHandler = new RequestHandler();
@@ -9,10 +9,17 @@ const handler: RequestHandler = new RequestHandler();
 main();
 
 async function main(): Promise<void> {
-    // Testing
+    // Initialize classes
     const Reg = new Register(handler);
-    //Reg.processRequest();
-    Reg.processRequest();
+    const Login = new Signin(handler);
+
+
+    // Manage registrations
+    Reg.processRegister();
+
+    // Manage signins
+    Login.processRegister();
+    //handler.fetchLoginSession(); // Send client user data when asked
 }
 
 // Start express
