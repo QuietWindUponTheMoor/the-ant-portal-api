@@ -4,7 +4,7 @@ import {Register} from "./lib/routes/register";
 import {Signin} from "./lib/routes/signin";
 
 // Create handler class instance
-const handler: RequestHandler = new RequestHandler();
+const handler: RequestHandler = new RequestHandler(__dirname);
 // Start the script
 main();
 

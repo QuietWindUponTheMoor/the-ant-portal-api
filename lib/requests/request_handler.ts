@@ -4,21 +4,23 @@ import { Request, Response } from "express";
 import * as bodyParser from "body-parser";
 const formidable = require("express-formidable");
 const session = require("express-session");
-import * as dotenv from "dotenv";
+const path = require("path");
 
 export class RequestHandler {
     // Constant
     private app: any;
     private port: number;
+    private root_dir: string = "";
 
     // Dynamic
 
-    public constructor() {
+    public constructor(root_dir: string) {
         // Set up express
         const app: any = express();
         const port: number = 81;
         this.app = app;
         this.port = port;
+        this.root_dir = root_dir;
 
         // Use cors
         this.app.use(cors({origin: "*"}));
@@ -37,6 +39,8 @@ export class RequestHandler {
                 maxAge: (60 * 60 * 1000) * 12 // 12 hours
             }
         }));
+        // Allow uploaded files to be discovered
+        app.use("/files", express.static(path.join(this.root_dir, "user_uploads", "profile_images")));
     }
 
     public startServer(): void {

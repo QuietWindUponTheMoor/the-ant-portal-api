@@ -141,7 +141,7 @@ export class Register {
 
         // Create the account/send to database
         if (image !== null && pass_fail !== false) { // Make sure pass/fail didn't fail on password hashing
-            query_response = await db.query("INSERT INTO users (username, email, password, image, joined) VALUES (?, ?, ?, ?, ?);", [username, email, hashed_pass, image, this.joined]);
+            query_response = await db.query("INSERT INTO users (username, email, password, image, joined) VALUES (?, ?, ?, ?, ?);", [username, email, hashed_pass, "http://127.0.0.1:81/files/" + encodeURIComponent(image), this.joined]);
         } else if (pass_fail !== false) { // Make sure pass/fail didn't fail on password hashing
             query_response = await db.query("INSERT INTO users (username, email, password, joined) VALUES (?, ?, ?, ?);", [username, email, hashed_pass, this.joined]);
         }

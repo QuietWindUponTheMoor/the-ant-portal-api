@@ -41,7 +41,7 @@ var request_handler_1 = require("./lib/requests/request_handler");
 var register_1 = require("./lib/routes/register");
 var signin_1 = require("./lib/routes/signin");
 // Create handler class instance
-var handler = new request_handler_1.RequestHandler();
+var handler = new request_handler_1.RequestHandler(__dirname);
 // Start the script
 main();
 function main() {
