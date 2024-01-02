@@ -5,6 +5,7 @@ import {getPathRelativeToRoot} from "../system/relPath";
 import {stringContainsBadWord} from "../filters/bad_words";
 import {db} from "../database/init";
 import {passHash} from "../system/passHash";
+import {gen_rand_string} from "../system/32_chat_gen";
 
 /*
 Account creation rules:
@@ -136,14 +137,16 @@ export class Register {
             fail_reason = `Error hashing password: ${hash_pass_data.details}`;
             pass_fail = false;
         }
-
         const hashed_pass: string = hash_pass_data.details;
+
+        // Generate user_id
+        const user_id: string = gen_rand_string();
 
         // Create the account/send to database
         if (image !== null && pass_fail !== false) { // Make sure pass/fail didn't fail on password hashing
-            query_response = await db.query("INSERT INTO users (username, email, password, image, joined) VALUES (?, ?, ?, ?, ?);", [username, email, hashed_pass, "http://127.0.0.1:81/files/" + encodeURIComponent(image), this.joined]);
+            query_response = await db.query("INSERT INTO users (userID, username, email, password, image, joined) VALUES (?, ?, ?, ?, ?, ?);", [user_id, username, email, hashed_pass, "http://127.0.0.1:81/files/" + image, this.joined]);
         } else if (pass_fail !== false) { // Make sure pass/fail didn't fail on password hashing
-            query_response = await db.query("INSERT INTO users (username, email, password, joined) VALUES (?, ?, ?, ?);", [username, email, hashed_pass, this.joined]);
+            query_response = await db.query("INSERT INTO users (userID, username, email, password, joined) VALUES (?, ?, ?, ?, ?);", [user_id, username, email, hashed_pass, this.joined]);
         }
 
         // Get response data

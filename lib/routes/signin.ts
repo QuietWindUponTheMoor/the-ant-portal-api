@@ -113,7 +113,7 @@ export class Signin {
                 user_id: user_id,
                 username: username,
                 email: email,
-                image: "http://127.0.0.1:81/files/" + encodeURIComponent(image)
+                image: image
             };
         }
 
