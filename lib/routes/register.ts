@@ -5,7 +5,7 @@ import {getPathRelativeToRoot} from "../system/relPath";
 import {stringContainsBadWord} from "../filters/bad_words";
 import {db} from "../database/init";
 import {passHash} from "../system/passHash";
-import {gen_rand_string} from "../system/32_chat_gen";
+import {gen_rand_string} from "../system/32_char_gen";
 
 /*
 Account creation rules:

@@ -29,9 +29,10 @@ export class RequestHandler {
         this.app.use(express.urlencoded({extended: true}));
         app.use(bodyParser.urlencoded({extended: true}));
         app.use(bodyParser.json());
+        // Use express.formidable() for file parsing
         app.use(formidable());
         app.use(session({ // This is for sessions
-            secret: process.env.secret, // Replace with a secure secret
+            secret: process.env.secret,
             resave: false,
             saveUninitialized: true,
             cookie: {
@@ -41,6 +42,7 @@ export class RequestHandler {
         }));
         // Allow uploaded files to be discovered
         app.use("/files", express.static(path.join(this.root_dir, "user_uploads", "profile_images")));
+        app.use("/post_files", express.static(path.join(this.root_dir, "user_uploads", "posts")));
     }
 
     public startServer(): void {

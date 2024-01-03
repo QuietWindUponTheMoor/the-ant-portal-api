@@ -11,3 +11,7 @@ export function stringContainsBadWord(input: string): {has_bad_word: boolean, fo
         found_bad_word: has_bad_word ? cleaned_string : undefined
     }
 }
+
+export function replaceBadWords(input: string): string {
+    return new Filter().clean(input);
+}
