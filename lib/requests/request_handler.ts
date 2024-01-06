@@ -45,9 +45,9 @@ export class RequestHandler {
         app.use("/post_files", express.static(path.join(this.root_dir, "user_uploads", "posts")));
     }
 
-    public startServer(): void {
-        this.app.listen(this.port, async () => {
-            console.log(`The Ant Lab API started on port ${this.port}`);
+    public startServer(port: number = this.port): void {
+        this.app.listen(port, async () => {
+            console.log(`The Ant Lab API started on port ${port}`);
         });
     }
 

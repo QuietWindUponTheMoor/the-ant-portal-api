@@ -23,6 +23,7 @@ export class CreatePost {
 
     // Dynamic
     private post_id: string = "";
+    private post_type: number | null = null;
 
     public constructor(handler: any) {
         this.handler = handler;
@@ -116,14 +117,16 @@ export class CreatePost {
                     status: this.__bad_request,
                     message: "Failed to create post",
                     details: fail_reason,
-                    post_id: null
+                    post_id: null,
+                    post_type: null
                 }
             } else if (pass_fail === true) {
                 reply_data = {
                     status: this.__ok,
                     message: "Created post successfully",
                     details: fail_reason,
-                    post_id: this.post_id
+                    post_id: this.post_id,
+                    post_type: this.post_type
                 }
             }
  
@@ -206,7 +209,10 @@ export class CreatePost {
 
         // Generate random post ID
         const post_id: string = gen_rand_string();
+
+        // Set post ID & post type
         this.post_id = post_id;
+        this.post_type = type;
 
         // Send to database. Images will be sent AFTER this method/function completes successfully.
         query_response = await db.query("INSERT INTO posts (postID, userID, `type`, title, body, `time`, lat, `long`, species, temperature, wind_speed, moon_cycle, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", [post_id, userID, type, title, body, joined, latitude, longitude, title, temperature, wind_speed, moon_cycle, tags]);

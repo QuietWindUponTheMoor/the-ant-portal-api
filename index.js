@@ -41,17 +41,19 @@ var request_handler_1 = require("./lib/requests/request_handler");
 var register_1 = require("./lib/routes/register");
 var signin_1 = require("./lib/routes/signin");
 var post_create_1 = require("./lib/routes/post_create");
+var post_data_1 = require("./lib/routes/post_data");
 // Create handler class instance
 var handler = new request_handler_1.RequestHandler(__dirname);
 // Start the script
 main();
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var Reg, Login, PostCreate;
+        var Reg, Login, PostCreate, Post_Data;
         return __generator(this, function (_a) {
             Reg = new register_1.Register(handler);
             Login = new signin_1.Signin(handler);
             PostCreate = new post_create_1.CreatePost(handler);
+            Post_Data = new post_data_1.PostData(handler);
             // Manage registrations
             Reg.processRegister();
             // Manage signins
@@ -59,6 +61,8 @@ function main() {
             //handler.fetchLoginSession(); // Send client user data when asked
             // Manage post creation
             PostCreate.processData();
+            // Process fetching of post data
+            Post_Data.processPostData();
             return [2 /*return*/];
         });
     });
