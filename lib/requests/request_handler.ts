@@ -43,6 +43,7 @@ export class RequestHandler {
         // Allow uploaded files to be discovered
         app.use("/files", express.static(path.join(this.root_dir, "user_uploads", "profile_images")));
         app.use("/post_files", express.static(path.join(this.root_dir, "user_uploads", "posts")));
+        app.use("/answer_files", express.static(path.join(this.root_dir, "user_uploads", "answers")));
     }
 
     public startServer(port: number = this.port): void {

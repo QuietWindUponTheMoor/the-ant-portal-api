@@ -39,3 +39,49 @@ CREATE TABLE IF NOT EXISTS posts (
     -- 6 = third-quarter
     -- 7 = waning-crescent
 );
+
+DROP TRIGGER IF EXISTS update_posts_votes;
+DROP TRIGGER IF EXISTS update_posts_votes_update;
+DROP TRIGGER IF EXISTS update_posts_votes_delete;
+DELIMITER //
+
+CREATE TRIGGER update_posts_votes
+AFTER INSERT ON voting
+FOR EACH ROW
+BEGIN
+    IF NEW.type = 0 THEN
+        -- New vote for a post (type = 0)
+        UPDATE posts p
+        SET p.upvotes = p.upvotes + IF(NEW.updown = 1, 1, 0),
+            p.downvotes = p.downvotes + IF(NEW.updown = 0, 1, 0)
+        WHERE p.postID = NEW.itemID;
+    END IF;
+END;
+//
+CREATE TRIGGER update_posts_votes_update
+AFTER UPDATE ON voting
+FOR EACH ROW
+BEGIN
+    IF OLD.type = 0 THEN
+        -- Update for a post (type = 0)
+        UPDATE posts p
+        SET p.upvotes = p.upvotes - IF(OLD.updown = 1, 1, 0) + IF(NEW.updown = 1, 1, 0),
+            p.downvotes = p.downvotes - IF(OLD.updown = 0, 1, 0) + IF(NEW.updown = 0, 1, 0)
+        WHERE p.postID = NEW.itemID;
+    END IF;
+END;
+//
+CREATE TRIGGER update_posts_votes_delete
+AFTER DELETE ON voting
+FOR EACH ROW
+BEGIN
+    IF OLD.type = 0 THEN
+        -- Delete for a post (type = 0)
+        UPDATE posts p
+        SET p.upvotes = p.upvotes - IF(OLD.updown = 1, 1, 0),
+            p.downvotes = p.downvotes - IF(OLD.updown = 0, 1, 0)
+        WHERE p.postID = OLD.itemID;
+    END IF;
+END;
+//
+DELIMITER ;

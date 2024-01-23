@@ -15,14 +15,14 @@ Types:
 4 = nuptial_flight
 */
 
-export class CreatePost {
+export class CreateAnswer {
     // Constant
     private handler: any;
     private __ok: number = 200;
     private __bad_request: number = 400;
 
     // Dynamic
-    private post_id: string = "";
+    private answer_id: string = "";
     private post_type: number | null = null;
 
     public constructor(handler: any) {
@@ -35,37 +35,20 @@ export class CreatePost {
         let pass_fail: boolean = true;
 
         // Handle the request
-        this.handler._res("/post_create", async (req: any, res: any) => {
+        this.handler._res("/answer_create", async (req: any, res: any) => {
             // Get all data
             const data = req.fields;
             const files = req.files;
 
             // Get always-existing data
-            const type: number = parseInt(data.post_type);
-            const title: string = replaceBadWords(data.species ?? data.title);
+            console.log(data);
             const body: string = replaceBadWords(data.body);
             const user_id: string = data.user_id;
             const joined: number = parseInt(data.joined);
-            const tags: string = replaceBadWords(data.all_tags);
-
-            // Get type-dependant data
-            const latitude: string | null = data.latitude ?? null;
-            const longitude: string | null = data.longitude ?? null;
-            let temperature: number | null = parseInt(data.temperature) ?? null;
-            let wind_speed: number | null = parseInt(data.wind_speed) ?? null;
-            let moon_cycle: number | null = parseInt(data.moon_cycle) ?? null;
-            if (Number.isNaN(temperature)) {
-                temperature = null;
-            }
-            if (Number.isNaN(wind_speed)) {
-                wind_speed = null;
-            }
-            if (Number.isNaN(moon_cycle)) {
-                moon_cycle = null;
-            }
+            const for_post_id: string = data.for_post_id;
 
             // Send data to the database
-            const create_check = await this.createPost(type, title, body, user_id, joined, latitude, longitude, temperature, wind_speed, moon_cycle, tags);
+            const create_check = await this.createAnswer(body, user_id, joined, for_post_id);
             const create_successful: boolean = create_check.validated;
             const create_fail_reason: string = create_check.reason;
             if (!create_successful) {
@@ -77,7 +60,6 @@ export class CreatePost {
             let uploaded_images: Array<string> = [];
             if (pass_fail !== false) {
                 // Count the number of files sent by client
-                //const file_count: number = Object.keys(files).length;
                 
                 for (const [key, subObject] of Object.entries(files)) {
                     // Cancel the loop if something went wrong
@@ -102,7 +84,7 @@ export class CreatePost {
             }
 
             // If everything has been successful until now, update the 'images' value of the post
-            const image_update_check = await this.updateImagesColumn(uploaded_images);
+            const image_update_check = await this.updateImagesColumn(uploaded_images, for_post_id);
             const image_update_successful: boolean = image_update_check.validated;
             const image_update_fail_reason: string = image_update_check.reason;
             if (!image_update_successful) {
@@ -115,17 +97,17 @@ export class CreatePost {
             if (pass_fail === false) {
                 reply_data = {
                     status: this.__bad_request,
-                    message: "Failed to create post",
+                    message: "Failed to create answer",
                     details: fail_reason,
-                    post_id: null,
+                    answer_id: null,
                     post_type: null
                 }
             } else if (pass_fail === true) {
                 reply_data = {
                     status: this.__ok,
-                    message: "Created post successfully",
+                    message: "Created answer successfully",
                     details: fail_reason,
-                    post_id: this.post_id,
+                    answer_id: this.answer_id,
                     post_type: this.post_type
                 }
             }
@@ -135,7 +117,7 @@ export class CreatePost {
         });
     }
 
-    private async updateImagesColumn(images: Array<string>): Promise<{validated: boolean, reason: string}> {
+    private async updateImagesColumn(images: Array<string>, for_post_id: string): Promise<{validated: boolean, reason: string}> {
         let fail_reason: string = "";
         let pass_fail: boolean = true;
         let query_response: any;
@@ -144,7 +126,7 @@ export class CreatePost {
         const images_as_string: string = images.join(",");
         
         // Insert into database
-        query_response = await db.query("UPDATE posts SET images=? WHERE postID=?;", [images_as_string, this.post_id]);
+        query_response = await db.query("UPDATE answers SET images=? WHERE answerID=? AND forPostID=?;", [images_as_string, this.answer_id, for_post_id]);
 
         // Get response data
         const data = query_response[0] ?? undefined;
@@ -170,7 +152,7 @@ export class CreatePost {
             const file: any = path.join(tmp_path);
             // Get download path formatted
             const hashed_name: string = hashFileName(file_name);
-            const download_path: string = path.join(getPathRelativeToRoot("user_uploads/posts"), hashed_name);
+            const download_path: string = path.join(getPathRelativeToRoot("user_uploads/answers"), hashed_name);
             // Download the image & return
             await download(download_path, file);
             // Return
@@ -190,32 +172,24 @@ export class CreatePost {
         }
     }
 
-    private async createPost(
-        type: number,
-        title: string,
+    private async createAnswer(
         body: string,
         userID: string,
         joined: number,
-        latitude: string | null,
-        longitude: string | null,
-        temperature: number | null,
-        wind_speed: number | null,
-        moon_cycle: number | null,
-        tags: string,
+        for_post_id: string
     ): Promise<{validated: boolean, reason: string}> {
         let fail_reason: string = "";
         let pass_fail: boolean = true;
         let query_response: any;
 
         // Generate random post ID
-        const post_id: string = gen_rand_string();
+        const answer_id: string = gen_rand_string();
 
         // Set post ID & post type
-        this.post_id = post_id;
-        this.post_type = type;
+        this.answer_id = answer_id;
 
         // Send to database. Images will be sent AFTER this method/function completes successfully.
-        query_response = await db.query("INSERT INTO posts (postID, userID, `type`, title, body, `time`, lat, `long`, species, temperature, wind_speed, moon_cycle, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", [post_id, userID, type, title, body, joined, latitude, longitude, title, temperature, wind_speed, moon_cycle, tags]);
+        query_response = await db.query("INSERT INTO answers (forPostID, answerID, userID, body, `time`) VALUES (?, ?, ?, ?, ?);", [for_post_id, answer_id, userID, body, joined]);
 
         // Get response data
         const data = query_response[0] ?? undefined;

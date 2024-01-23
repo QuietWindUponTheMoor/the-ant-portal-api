@@ -150,8 +150,8 @@ export class Register {
         }
 
         // Get response data
-        const data = query_response[0];
-        if (data.serverStatus !== 2) {
+        const data = query_response[0] ?? undefined;
+        if (data === undefined || data.serverStatus !== 2) {
             // If request failed in any way
             fail_reason = `Query failed: ${{server_status: data.serverStatus, details: data.info, warning_status: data.warningStatus}}`;
             pass_fail = false;

@@ -1,3 +1,4 @@
+import { query } from "express";
 import {db} from "../database/init";
 
 export class PostData {
@@ -19,6 +20,7 @@ export class PostData {
         this.handler._res("/fetch_post_data", async (req: any, res: any) => {
             // Initialize post_data
             let post_data: any = null;
+            let answers_data: any = null;
             // Get all data
             const data = req.fields;
             const login_status: number = parseInt(data.login_status);
@@ -36,7 +38,7 @@ export class PostData {
                 pass_fail = false;
                 fail_reason = `The post id ${post_id} is not valid.`;
             } else {
-                // Everything is OK
+                // Everything is OK now fetch post data
                 const fetch_check: any = await this.fetchPostData(post_id);
                 const fetch_successful: boolean = fetch_check.validated;
                 const fetch_fail_reason: string = fetch_check.reason;
@@ -44,6 +46,16 @@ export class PostData {
                 if (!fetch_successful) {
                     pass_fail = false;
                     fail_reason = fetch_fail_reason;
+                }
+
+                // Everything is OK now fetch answers for this post
+                const answers_check: any = await this.fetchAnswersData(post_id);
+                const answers_successful: boolean = answers_check.validated;
+                const answers_fail_reason: string = answers_check.reason;
+                answers_data = answers_check.answer_data;
+                if (!answers_successful) {
+                    pass_fail = false;
+                    fail_reason = answers_fail_reason;
                 }
             }
 
@@ -63,14 +75,16 @@ export class PostData {
                     status: this.__bad_request,
                     message: "Fetch data failed",
                     details: fail_reason,
-                    post_data: null
+                    post_data: null,
+                    answers: null
                 }
             } else if (pass_fail === true) {
                 reply_data = {
                     status: this.__ok,
                     message: "Fetched data successfully",
                     details: fail_reason,
-                    post_data: post_data
+                    post_data: post_data,
+                    answers: answers_data
                 }
             }
 
@@ -95,7 +109,7 @@ export class PostData {
         let pass_fail: boolean = true;
         let post_data: any;
         let view_count: number = 0;
-        let query_response: any;
+        let query_response: any = null;
         
         // Fetch current view count
         const data: any = await db.query(`SELECT views FROM posts WHERE postID=?;`, [post_id]);
@@ -115,14 +129,19 @@ export class PostData {
             query_response = await db.query("UPDATE posts SET views=? WHERE postID=?;", [view_count, post_id]);
         }
 
-        // Get response data
-        const increment_response_data = query_response[0];
-        if (increment_response_data.serverStatus !== 2) {
-            // If request failed in any way
-            fail_reason = `Query failed: ${{server_status: data.serverStatus, details: data.info, warning_status: data.warningStatus}}`;
-            pass_fail = false;
-        } else {
-            console.log(`\x1b[33m Incremented view_count for post \x1b[32m${post_id}\x1b[0m`);
+        /*
+        null = post_id is invalid or post doesn't exist
+        NOT NULL and [0] can be set = everything is good
+        ResultSetHeader.affectedRows = 0 means item wasn't found; in this case, send a console error for failure with ResultSetHeader.info attached as fail_reason
+        */
+
+        if (query_response !== null && query_response[0] !== undefined) { // Everything was good up until now
+            if (query_response[0].serverStatus !== 2) { // Query itself failed
+                pass_fail = false;
+                fail_reason = `Query Failed: ${query_response[0].info}`;
+            } else {
+                console.log(`\x1b[33m Incremented view_count for post \x1b[32m${post_id}\x1b[0m`);
+            }
         }
 
         // If all else is good, return result
@@ -153,6 +172,29 @@ export class PostData {
             validated: pass_fail,
             reason: fail_reason,
             post_data: post_data
+        }
+    }
+
+    public async fetchAnswersData(post_id: string): Promise<{validated: boolean, reason: string, answer_data: any}> {
+        let fail_reason: string = "";
+        let pass_fail: boolean = true;
+        let answer_data: any;
+        
+        // Fetch data
+        const data: any = await db.query(`SELECT *, (upvotes - downvotes) AS total_votes, isAcceptedAnswer FROM answers WHERE forPostID=? ORDER BY isAcceptedAnswer DESC, total_votes DESC;`, [post_id]);
+        if (data[0].length < 1) {
+            pass_fail = false;
+            fail_reason = `No records were found for the post ID ${post_id}.`;
+            answer_data = null;
+        } else {
+            answer_data = data[0];
+        }
+
+        // If all else is good, return result
+        return {
+            validated: pass_fail,
+            reason: fail_reason,
+            answer_data: answer_data
         }
     }
 }
