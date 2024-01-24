@@ -36,6 +36,15 @@ export class ManualQuery {
                 send_data = query_data;
             }
 
+            // For replies
+            if (query === "SELECT * FROM replies WHERE `type`=? AND forItemID=? ORDER BY `time` ASC;") {
+                if (query_data === undefined) {
+                    send_data = null;
+                } else {
+                    send_data = query_response[0];
+                }
+            }
+
             // Process data and send response
             let reply_data: any;
             reply_data = {
